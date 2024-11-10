@@ -2,7 +2,6 @@ import { exec } from 'node:child_process';
 import { promises as fs } from 'node:fs';
 import { promisify } from 'node:util';
 import readline from 'node:readline';
-import crypto from 'node:crypto';
 import path from 'node:path';
 import os from 'node:os';
 
@@ -77,8 +76,39 @@ async function checkStripeCLI() {
   }
 }
 
+async function getStripeSecretKey(): Promise<string> {
+  console.log('\nStep 2: Getting Stripe Secret Key');
+  console.log(
+    'You can find your Stripe Secret Key at: https://dashboard.stripe.com/test/apikeys'
+  );
+  return await question('Enter your Stripe Secret Key: ');
+}
+
+async function createStripeWebhookSecret(): Promise<string> {
+  console.log('\nStep 3: Creating Stripe webhook secret...');
+  try {
+    const { stdout } = await execAsync('stripe listen --print-secret');
+    const match = stdout.match(/whsec_[a-zA-Z0-9]+/);
+    if (!match) {
+      throw new Error('Failed to extract Stripe webhook secret');
+    }
+    console.log('Stripe webhook secret created.');
+    return match[0];
+  } catch (error) {
+    console.error(
+      'Failed to create Stripe webhook secret. Check your Stripe CLI installation and permissions.'
+    );
+    if (os.platform() === 'win32') {
+      console.log(
+        'Note: On Windows, you may need to run this script as an administrator.'
+      );
+    }
+    throw error;
+  }
+}
+
 async function checkSupabaseProject(): Promise<void> {
-  console.log('\nStep 2: Checking Supabase Project Setup');
+  console.log('\nStep 4: Checking Supabase Project Setup');
   
   const hasProject = await question('Do you already have a Supabase project? (y/n): ');
   
@@ -101,35 +131,20 @@ async function checkSupabaseProject(): Promise<void> {
   }
 }
 
-async function getStripeSecretKey(): Promise<string> {
-  console.log('Step 3: Getting Stripe Secret Key');
+async function getSupabaseKeysApiUrl(): Promise<string> {
+  console.log('\nStep 5: Getting Supabase Keys');
   console.log(
-    'You can find your Stripe Secret Key at: https://dashboard.stripe.com/test/apikeys'
+    'You can find your Supabase Keys at: supabase.com/dashboard/project/<project-id>/settings/api'
   );
-  return await question('Enter your Stripe Secret Key: ');
+  return await question('Enter your Supabase API Url: ');
 }
 
-async function createStripeWebhook(): Promise<string> {
-  console.log('Step 4: Creating Stripe webhook...');
-  try {
-    const { stdout } = await execAsync('stripe listen --print-secret');
-    const match = stdout.match(/whsec_[a-zA-Z0-9]+/);
-    if (!match) {
-      throw new Error('Failed to extract Stripe webhook secret');
-    }
-    console.log('Stripe webhook created.');
-    return match[0];
-  } catch (error) {
-    console.error(
-      'Failed to create Stripe webhook. Check your Stripe CLI installation and permissions.'
-    );
-    if (os.platform() === 'win32') {
-      console.log(
-        'Note: On Windows, you may need to run this script as an administrator.'
-      );
-    }
-    throw error;
-  }
+async function getSupabaseKeysAnonKey(): Promise<string> {
+  return await question('Enter your Supabase Anon Key: ');
+}
+
+async function getSupabaseKeysServiceRoleKey(): Promise<string> {
+  return await question('Enter your Supabase Service Role Key: ');
 }
 
 
@@ -145,14 +160,21 @@ async function writeEnvFile(envVars: Record<string, string>) {
 
 async function main() {
   await checkStripeCLI();
-  await checkSupabaseProject();
   const STRIPE_SECRET_KEY = await getStripeSecretKey();
-  const STRIPE_WEBHOOK_SECRET = await createStripeWebhook();
+  const STRIPE_WEBHOOK_SECRET = await createStripeWebhookSecret();
+  await checkSupabaseProject();
+  const NEXT_PUBLIC_SUPABASE_URL = await getSupabaseKeysApiUrl();
+  const NEXT_PUBLIC_SUPABASE_ANON_KEY = await getSupabaseKeysAnonKey();
+  const SUPABASE_SERVICE_ROLE_KEY = await getSupabaseKeysServiceRoleKey();
+
   const BASE_URL = 'http://localhost:3000';
 
   await writeEnvFile({
     STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET,
+    NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    SUPABASE_SERVICE_ROLE_KEY,
     BASE_URL,
   });
 

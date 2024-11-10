@@ -1,8 +1,8 @@
 # Next.js SaaS Starter
 
-This is a starter template for building a SaaS application using **Next.js** with support for authentication, Stripe integration for payments, and a dashboard for logged-in users.
+This is a starter template for building a SaaS application using **Next.js**, **Supabase** as Baas (Postgres database, Authentication, instant APIs, Edge Functions, Realtime subscriptions, Storage, and Vector embedding), Stripe integration for payments, and a dashboard for logged-in users.
 
-**Demo: [https://next-saas-start.vercel.app/](https://next-saas-start.vercel.app/)**
+**Demo: [https://next-supabase-saas-starter.vercel.app/](https://next-supabase-saas-starter.vercel.app/)**
 
 <details>
   <summary>Why did I make this?</summary>
@@ -34,16 +34,15 @@ Fun fact: the majority of the UI for this application was built with [v0](https:
 ## Tech Stack
 
 - **Framework**: [Next.js](https://nextjs.org/)
-- **Database**: [Postgres](https://www.postgresql.org/)
-- **ORM**: [Drizzle](https://orm.drizzle.team/)
+- **Baas**: [Supabase](https://supabase.com/)
 - **Payments**: [Stripe](https://stripe.com/)
 - **UI Library**: [shadcn/ui](https://ui.shadcn.com/)
 
 ## Getting Started
 
 ```bash
-git clone https://github.com/leerob/next-saas-starter
-cd next-saas-starter
+git clone https://github.com/giudigior/next-supabase-saas-starter
+cd next-supabase-saas-starter
 pnpm install
 ```
 
@@ -114,8 +113,9 @@ In your Vercel project settings (or during deployment), add all the necessary en
 1. `BASE_URL`: Set this to your production domain.
 2. `STRIPE_SECRET_KEY`: Use your Stripe secret key for the production environment.
 3. `STRIPE_WEBHOOK_SECRET`: Use the webhook secret from the production webhook you created in step 1.
-4. `POSTGRES_URL`: Set this to your production database URL.
-5. `AUTH_SECRET`: Set this to a random string. `openssl rand -base64 32` will generate one.
+4. `NEXT_PUBLIC_SUPABASE_URL`: Use your Supabase API Url for the production environment.
+5. `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Use your Supabase anon key for the production environment.
+6. `SUPABASE_SERVICE_ROLE_KEY`: Use your Supabase service role key for the production environment.
 
 ## Other Templates
 
